@@ -1,0 +1,43 @@
+name: "Publishing Classic (经典出版)"
+description: "暖纸底色，墨黑正文，深红点缀。经典书籍出版风格。"
+page_size: "A5"
+colors:
+  page_bg: "#FEFCF6"
+  text: "#2D2D2D"
+  text_faded: "#666666"
+  accent: "#8B1A1A"
+  accent_light: "#B22222"
+  border: "#D4C5B2"
+  code_bg: "#F5F0E8"
+  table_header: "#8B1A1A"
+  table_header_text: "#FFFFFF"
+  table_alt_row: "#F8F4EE"
+  blockquote_border: "#8B1A1A"
+  link: "#1E3A5F"
+  sidebar_bg: "#F5F2ED"
+  cover_gradient_start: "#2C1810"
+  cover_gradient_end: "#5C3A28"
+  cover_accent: "#C4956A"
+  cover_text: "#FEFCF6"
+fonts:
+  heading_serif: "Georgia"
+  body_serif: "Georgia"
+  body_cjk: "SimSun"
+  mono: "Consolas"
+  cjk_bold: "SimSun"
+sizes:
+  cover_title: 42
+  chapter_title: 28
+  h1: 18
+  h2: 15
+  h3: 13
+  body: 11
+  code: 9
+  footnote: 9
+page_margins:
+  top: 20
+  bottom: 20
+  side: 20
+line_height: 1.75
+first_line_indent: 2
+paragraph_spacing: 0.5

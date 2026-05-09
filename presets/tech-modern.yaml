@@ -1,0 +1,43 @@
+name: "Tech Modern (科技现代)"
+description: "纯白底色，品牌蓝点缀，现代简洁风格。适合技术书籍、开发手册。"
+page_size: "A5"
+colors:
+  page_bg: "#FFFFFF"
+  text: "#2D333B"
+  text_faded: "#656D76"
+  accent: "#0969DA"
+  accent_light: "#218BFF"
+  border: "#D0D7DE"
+  code_bg: "#F6F8FA"
+  table_header: "#0969DA"
+  table_header_text: "#FFFFFF"
+  table_alt_row: "#F6F8FA"
+  blockquote_border: "#0969DA"
+  link: "#0969DA"
+  sidebar_bg: "#F4F6F9"
+  cover_gradient_start: "#0A2540"
+  cover_gradient_end: "#0969DA"
+  cover_accent: "#218BFF"
+  cover_text: "#FFFFFF"
+fonts:
+  heading_serif: "Helvetica"
+  body_serif: "Helvetica"
+  body_cjk: "Microsoft YaHei"
+  mono: "Consolas"
+  cjk_bold: "Microsoft YaHei"
+sizes:
+  cover_title: 44
+  chapter_title: 30
+  h1: 20
+  h2: 16
+  h3: 14
+  body: 11
+  code: 9
+  footnote: 9
+page_margins:
+  top: 18
+  bottom: 18
+  side: 18
+line_height: 1.7
+first_line_indent: 2
+paragraph_spacing: 0.6

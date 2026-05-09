@@ -1,0 +1,43 @@
+name: "Academic Serif (学术期刊)"
+description: "象牙白底色，藏蓝正文，学术严谨风格。适合论文、专著、教材。"
+page_size: "A5"
+colors:
+  page_bg: "#FDFBF5"
+  text: "#2D3D4D"
+  text_faded: "#5A6573"
+  accent: "#1E3A5F"
+  accent_light: "#3A5C82"
+  border: "#D6DCE5"
+  code_bg: "#F4F6F9"
+  table_header: "#1E3A5F"
+  table_header_text: "#FFFFFF"
+  table_alt_row: "#F8F9FB"
+  blockquote_border: "#1E3A5F"
+  link: "#0969DA"
+  sidebar_bg: "#F0EDE8"
+  cover_gradient_start: "#0F1B2D"
+  cover_gradient_end: "#1E3A5F"
+  cover_accent: "#5B8C9E"
+  cover_text: "#FEFCF6"
+fonts:
+  heading_serif: "Palatino"
+  body_serif: "Palatino"
+  body_cjk: "SimSun"
+  mono: "Consolas"
+  cjk_bold: "SimSun"
+sizes:
+  cover_title: 40
+  chapter_title: 26
+  h1: 17
+  h2: 14
+  h3: 12
+  body: 11
+  code: 9
+  footnote: 9
+page_margins:
+  top: 22
+  bottom: 22
+  side: 22
+line_height: 1.8
+first_line_indent: 2
+paragraph_spacing: 0.5

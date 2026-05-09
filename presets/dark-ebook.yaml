@@ -1,0 +1,43 @@
+name: "Dark E-book (深色电子书)"
+description: "深灰底色，柔白正文，琥珀点缀。护眼暗色模式，适合夜间长时间屏幕阅读。"
+page_size: "A5"
+colors:
+  page_bg: "#1E1E1E"
+  text: "#E4E0D8"
+  text_faded: "#8A8580"
+  accent: "#D4A04A"
+  accent_light: "#E8BC6E"
+  border: "#3D3D3D"
+  code_bg: "#2A2A2A"
+  table_header: "#D4A04A"
+  table_header_text: "#1E1E1E"
+  table_alt_row: "#262626"
+  blockquote_border: "#D4A04A"
+  link: "#7EB8D4"
+  sidebar_bg: "#2A2A2A"
+  cover_gradient_start: "#121212"
+  cover_gradient_end: "#2A2A2A"
+  cover_accent: "#D4A04A"
+  cover_text: "#E4E0D8"
+fonts:
+  heading_serif: "Georgia"
+  body_serif: "Georgia"
+  body_cjk: "Microsoft YaHei"
+  mono: "Consolas"
+  cjk_bold: "Microsoft YaHei"
+sizes:
+  cover_title: 40
+  chapter_title: 28
+  h1: 18
+  h2: 15
+  h3: 13
+  body: 11
+  code: 9
+  footnote: 9
+page_margins:
+  top: 20
+  bottom: 20
+  side: 20
+line_height: 1.75
+first_line_indent: 2
+paragraph_spacing: 0.5

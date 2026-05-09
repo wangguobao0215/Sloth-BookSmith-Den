@@ -1,0 +1,43 @@
+name: "Consulting Navy (咨询深蓝)"
+description: "纯白底色，深海军蓝点缀。麦肯锡/BCG/Deloitte 研究报告风格。"
+page_size: "A5"
+colors:
+  page_bg: "#FFFFFF"
+  text: "#2D2D2D"
+  text_faded: "#5A6573"
+  accent: "#1E3A5F"
+  accent_light: "#3A5C82"
+  border: "#D6DCE5"
+  code_bg: "#F4F6F9"
+  table_header: "#1E3A5F"
+  table_header_text: "#FFFFFF"
+  table_alt_row: "#F8F9FB"
+  blockquote_border: "#1E3A5F"
+  link: "#1E3A5F"
+  sidebar_bg: "#F4F6F9"
+  cover_gradient_start: "#0F1B2D"
+  cover_gradient_end: "#1E3A5F"
+  cover_accent: "#5B8C9E"
+  cover_text: "#FFFFFF"
+fonts:
+  heading_serif: "Helvetica"
+  body_serif: "Georgia"
+  body_cjk: "Microsoft YaHei"
+  mono: "Consolas"
+  cjk_bold: "Microsoft YaHei"
+sizes:
+  cover_title: 40
+  chapter_title: 28
+  h1: 18
+  h2: 15
+  h3: 13
+  body: 11
+  code: 9
+  footnote: 9
+page_margins:
+  top: 20
+  bottom: 20
+  side: 20
+line_height: 1.75
+first_line_indent: 2
+paragraph_spacing: 0.5

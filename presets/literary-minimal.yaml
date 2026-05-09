@@ -1,0 +1,43 @@
+name: "Literary Minimal (文学极简)"
+description: "米白底色，炭灰正文，素雅克制。适合散文、随笔、回忆录。"
+page_size: "A5"
+colors:
+  page_bg: "#F8F5F0"
+  text: "#2D2D2D"
+  text_faded: "#777777"
+  accent: "#4A4A4A"
+  accent_light: "#666666"
+  border: "#D8D5D0"
+  code_bg: "#F0EDE8"
+  table_header: "#4A4A4A"
+  table_header_text: "#FFFFFF"
+  table_alt_row: "#F5F2ED"
+  blockquote_border: "#4A4A4A"
+  link: "#4A4A4A"
+  sidebar_bg: "#F0EDE8"
+  cover_gradient_start: "#3D3D3D"
+  cover_gradient_end: "#5A5A5A"
+  cover_accent: "#8A8A8A"
+  cover_text: "#F8F5F0"
+fonts:
+  heading_serif: "Georgia"
+  body_serif: "Georgia"
+  body_cjk: "KaiTi"
+  mono: "Consolas"
+  cjk_bold: "KaiTi"
+sizes:
+  cover_title: 38
+  chapter_title: 26
+  h1: 17
+  h2: 14
+  h3: 12
+  body: 11
+  code: 9
+  footnote: 9
+page_margins:
+  top: 24
+  bottom: 24
+  side: 24
+line_height: 1.85
+first_line_indent: 2
+paragraph_spacing: 0.6
