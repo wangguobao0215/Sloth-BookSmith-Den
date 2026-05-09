@@ -24,3 +24,17 @@ test_final.*
 
 # References are maintained locally, not versioned unless explicitly added
 # references/
+
+# 私有文件（绝对不能提交）
+*设计方案*.md
+*评审*.md
+*开发计划*.md
+*参考资料*.md
+*设计文档*.md
+*.private.*
+credentials.*
+
+# 临时文件
+*.tmp
+*.log
+output/
