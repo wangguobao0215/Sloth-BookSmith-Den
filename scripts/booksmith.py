@@ -284,7 +284,7 @@ def process_body_html(html, chapter_index=0):
 # ─── HTML Generators ──────────────────────────────────────────────────────
 def generate_cover_html(config):
     """Generate cover page HTML with decorative elements."""
-    title = config.get('title', 'Untitled')
+    title = config.get('cover_title', config.get('title', 'Untitled'))
     author = config.get('author', '')
     date_str = config.get('date', str(date.today()))
     subtitle = config.get('subtitle', '')
@@ -359,16 +359,38 @@ def generate_copyright_html(config):
 </div>'''
 
 
+# Robust PDF placeholder characters (CJK circled number prefix + tiangan/dizhi)
+_TIANGAN = "\u7532\u4e59\u4e19\u4e01\u620a\u5df1\u5e9a\u8f9b\u58ec\u7678"
+_DIZHI = "\u5b50\u4e11\u5bc5\u536f\u8fb0\u5df3\u5348\u672a\u7533\u9149\u620c\u4ea5"
+
+
+def _make_placeholder(counter):
+    """Generate a short, CJK-only placeholder for reliable PDF text-layer search."""
+    prefix = "\u32a3"  # ㊣
+    if counter < 10:
+        return f"{prefix}{_TIANGAN[counter]}"
+    elif counter < 22:
+        return f"{prefix}{_TIANGAN[counter % 10]}{_DIZHI[counter - 10]}"
+    else:
+        # Fallback: use two tiangan chars
+        t1 = counter // 10
+        t2 = counter % 10
+        return f"{prefix}{_TIANGAN[t1 % 10]}{_TIANGAN[t2 % 10]}"
+
+
 def generate_toc_html(chapters, config):
     """Generate table of contents HTML with hierarchy and dot leaders."""
     items = []
+    toc_counter = 0
     for i, ch in enumerate(chapters):
         # Main chapter (H1)
         items.append(
             f'<li class="toc-item toc-level-1">'
             f'<a href="#ch{i}"><span class="toc-text">{ch["title"]}</span>'
-            f'<span class="toc-dots"></span></a></li>'
+            f'<span class="toc-dots"></span>'
+            f'<span class="toc-page-num">{_make_placeholder(toc_counter)}</span></a></li>'
         )
+        toc_counter += 1
         # Sub-chapters (H2) with anchor links
         for sub in ch.get('sub_chapters', []):
             if isinstance(sub, dict):
@@ -380,8 +402,10 @@ def generate_toc_html(chapters, config):
             items.append(
                 f'<li class="toc-item toc-level-2">'
                 f'<a href="#{sub_anchor}"><span class="toc-text">{sub_title}</span>'
-                f'<span class="toc-dots"></span></a></li>'
+                f'<span class="toc-dots"></span>'
+                f'<span class="toc-page-num">{_make_placeholder(toc_counter)}</span></a></li>'
             )
+            toc_counter += 1
 
     return f'''<div class="toc-page">
 <h2 class="toc-heading">\u76ee \u5f55</h2>
@@ -421,7 +445,19 @@ def generate_body_html(chapters, config):
         parts.append(f'<section class="chapter">')
         parts.append(generate_chapter_opener(chapter, i, config))
 
-        chapter_html = convert_markdown_to_html(chapter['content'])
+        # Inject invisible markers before H2 headings for reliable page lookup
+        content_lines = chapter['content'].split('\n')
+        marked_lines = []
+        sub_counter = 0
+        for line in content_lines:
+            if line.startswith('## '):
+                sub_counter += 1
+                # Tiny marker text (0.5pt, essentially invisible but searchable)
+                marker = f'<span style="font-size:0.5pt;">§TOC{i}-{sub_counter}§</span>'
+                marked_lines.append(marker)
+            marked_lines.append(line)
+
+        chapter_html = convert_markdown_to_html('\n'.join(marked_lines))
         chapter_html = process_body_html(chapter_html, chapter_index=i)
 
         # Skip empty body sections (e.g. TOC chapter with only page-break div)
@@ -724,6 +760,7 @@ html {{
     text-decoration: none;
     display: flex;
     align-items: baseline;
+    flex-wrap: nowrap;
 }}
 
 .toc-text {{
@@ -737,14 +774,14 @@ html {{
     min-width: 2em;
 }}
 
-.toc-item a::after {{
-    content: target-counter(attr(href), page);
+.toc-page-num {{
     font-family: {fonts['cjk']};
     font-size: 9.5pt;
     color: {colors['text_faded']};
     flex-shrink: 0;
     min-width: 1.5em;
     text-align: right;
+    white-space: nowrap;
 }}
 
 /* ─── Chapter ─── */
@@ -1190,9 +1227,9 @@ html {{
     left: 50%;
     transform: translate(-50%, -50%) rotate(-30deg);
     font-family: {fonts['cjk']};
-    font-size: 36pt;
-    color: {colors['text_faded']};
-    opacity: 0.08;
+    font-size: 48pt;
+    color: {colors['text']};
+    opacity: 0.12;
     pointer-events: none;
     z-index: 1000;
     white-space: nowrap;
@@ -1231,7 +1268,7 @@ def add_bookmarks(pdf_path, chapters, config):
                 page = doc[page_num]
                 text = page.get_text()
                 # Look for "第 X 章" followed by chapter title
-                if f"\u7b2c {i + 1} \u7ae0" in text and ch['title'][:10] in text:
+                if (f"\u7b2c {i + 1}  \u7ae0" in text or f"\u7b2c {i + 1} \u7ae0" in text) and ch['title'][:10] in text:
                     toc.append([1, ch_label, page_num])
                     ch_page = page_num
                     found = True
@@ -1306,6 +1343,198 @@ def add_bookmarks(pdf_path, chapters, config):
         print(f"Warning: Could not add bookmarks: {e}")
 
 
+def inject_toc_page_numbers(pdf_path, chapters):
+    """Inject actual page numbers into TOC placeholders using PyMuPDF.
+
+    Strategy: use get_text('dict') to find all placeholder spans in the
+    right column of each TOC page, group by y-position, redact a wide
+    rectangle, and insert the page number. This avoids font-subsetting
+    issues with search_for().
+    """
+    try:
+        import fitz
+        doc = fitz.open(pdf_path)
+
+        # Find first TOC page
+        toc_start_idx = None
+        for i in range(min(5, len(doc))):
+            text = doc[i].get_text()
+            if "\u76ee\u5f55" in text or "\u76ee \u5f55" in text:
+                toc_start_idx = i
+                break
+
+        if toc_start_idx is None:
+            print("Warning: Could not find TOC page.")
+            doc.close()
+            return
+
+        # ── Find all TOC pages and placeholder positions ──
+        toc_positions = []  # list of (page_idx, y0, y1, x0, x1)
+
+        for page_idx in range(toc_start_idx, len(doc)):
+            page = doc[page_idx]
+            d = page.get_text("dict")
+            spans = []
+            for block in d.get("blocks", []):
+                for line in block.get("lines", []):
+                    for span in line.get("spans", []):
+                        x0, y0, x1, y1 = span["bbox"]
+                        # Right column, below header, above watermark/page num
+                        if x0 > 280 and y0 > 50 and y1 < 560:
+                            spans.append((y0, y1, x0, x1))
+
+            if not spans:
+                break
+
+            # Group spans by y-position (within 10pt tolerance)
+            spans.sort()
+            groups = []
+            for y0, y1, x0, x1 in spans:
+                if groups and abs(y0 - groups[-1][0]) < 10:
+                    groups[-1] = (
+                        min(groups[-1][0], y0),
+                        max(groups[-1][1], y1),
+                        min(groups[-1][2], x0),
+                        max(groups[-1][3], x1),
+                    )
+                else:
+                    groups.append((y0, y1, x0, x1))
+
+            for g in groups:
+                toc_positions.append((page_idx, g[0], g[1], g[2], g[3]))
+
+        if not toc_positions:
+            print("Warning: No TOC placeholder positions found.")
+            doc.close()
+            return
+
+        toc_end_idx = toc_positions[-1][0]
+        print(f"TOC spans {len(toc_positions)} entries across pages "
+              f"{toc_start_idx + 1}-{toc_end_idx + 1}")
+
+        # ── Build flat list of TOC entries with marker info ──
+        toc_entries = []
+        for i, ch in enumerate(chapters):
+            toc_entries.append({"title": ch["title"], "is_sub": False, "ch_idx": i})
+            for j, sub in enumerate(ch.get("sub_chapters", [])):
+                sub_title = sub["title"] if isinstance(sub, dict) else sub
+                toc_entries.append({"title": sub_title, "is_sub": True, "ch_idx": i, "sub_idx": j + 1})
+
+        if len(toc_positions) != len(toc_entries):
+            print(f"Warning: TOC position count ({len(toc_positions)}) != "
+                  f"entry count ({len(toc_entries)}). Using min.")
+
+        # ── Helper: find chapter page (skip all TOC pages) ──
+        def find_chapter_page(entry):
+            # Skip TOC self-reference
+            if entry["title"].startswith("\u76ee\u5f55"):
+                return None
+
+            toc_pages = set(range(toc_start_idx, toc_end_idx + 1))
+
+            def _search_page(pnum, term):
+                """Search for term on page pnum."""
+                if pnum in toc_pages:
+                    return None
+                if doc[pnum].search_for(term):
+                    return pnum
+                return None
+
+            # Sub-chapter: search for invisible marker first (most reliable)
+            if entry.get("is_sub") and entry.get("sub_idx"):
+                marker = f"§TOC{entry['ch_idx']}-{entry['sub_idx']}§"
+                for pnum in range(len(doc)):
+                    if _search_page(pnum, marker):
+                        return pnum
+                # Fallback 1: try full heading text with y-limit
+                for pnum in range(len(doc)):
+                    if pnum in toc_pages:
+                        continue
+                    rects = doc[pnum].search_for(entry["title"][:18])
+                    if rects:
+                        for rect in rects:
+                            if rect.y0 < 400:
+                                return pnum
+                        break
+                # Fallback 2: try chapter number pattern for 第N章 entries
+                m = re.search(r'\u7b2c\s*(\d+)\s*\u7ae0', entry["title"])
+                if m:
+                    num = int(m.group(1))
+                    for search_fmt in (f"\u7b2c{num}\u7ae0", f"\u7b2c {num} \u7ae0"):
+                        for pnum in range(len(doc)):
+                            if pnum in toc_pages:
+                                continue
+                            rects = doc[pnum].search_for(search_fmt)
+                            if rects:
+                                for rect in rects:
+                                    if rect.y0 < 400:
+                                        return pnum
+                                break
+                return None
+
+            # H1 chapter: search for chapter label (e.g., "第 4 章")
+            ch_idx = entry.get("ch_idx", 0)
+            label = f"\u7b2c {ch_idx + 1} \u7ae0"
+            for pnum in range(len(doc)):
+                if _search_page(pnum, label):
+                    return pnum
+
+            # Fallback for H1 chapters: try title prefixes
+            for term_len in (20, 12, 8, 6):
+                term = entry["title"][:term_len]
+                for pnum in range(len(doc)):
+                    if _search_page(pnum, term):
+                        return pnum
+
+            return None
+
+        # ── Pass 1: add redaction annots for all placeholders ──
+        injections = []  # list of (page_idx, redact_rect, page_num_str)
+        for idx, (page_idx, y0, y1, x0, x1) in enumerate(toc_positions):
+            if idx >= len(toc_entries):
+                break
+
+            entry = toc_entries[idx]
+            actual_page = find_chapter_page(entry)
+
+            page = doc[page_idx]
+            # Always redact the placeholder area
+            redact_rect = fitz.Rect(max(0, x0 - 25), y0 - 2, x1 + 15, y1 + 2)
+            page.add_redact_annot(redact_rect, text="")
+
+            if actual_page is not None:
+                injections.append((page_idx, redact_rect, str(actual_page + 1)))
+
+        # ── Pass 2: apply redactions (removes all placeholders) ──
+        for page_idx in range(toc_start_idx, toc_end_idx + 1):
+            doc[page_idx].apply_redactions()
+
+        # ── Pass 3: insert page numbers into clean areas ──
+        count = 0
+        for page_idx, redact_rect, page_num_str in injections:
+            page = doc[page_idx]
+            text_width = len(page_num_str) * 6.5
+            insert_x = redact_rect.x1 - text_width - 2
+            insert_y = redact_rect.y1 - 1
+
+            page.insert_text(
+                (insert_x, insert_y),
+                page_num_str,
+                fontsize=9.5,
+                fontname="helv",
+                color=(0.4, 0.4, 0.4),
+            )
+            count += 1
+
+        doc.save(pdf_path, incremental=True, encryption=fitz.PDF_ENCRYPT_KEEP)
+        print(f"TOC page numbers injected ({count}/{len(toc_entries)} entries).")
+        doc.close()
+    except ImportError:
+        print("Note: PyMuPDF not installed, skipping TOC page numbers.")
+    except Exception as e:
+        print(f"Warning: Could not inject TOC page numbers: {e}")
+
+
 # ─── Common Book Builder ──────────────────────────────────────────────────
 def build_book(input_md, config):
     """Parse markdown, apply config, build all book fragments."""
@@ -1317,6 +1546,17 @@ def build_book(input_md, config):
     for k, v in frontmatter.items():
         if k not in config:
             config[k] = v
+
+    # Auto-detect book title from body if frontmatter title looks like preface/intro
+    title = config.get('title', '')
+    if title.startswith(('序言', '前言', '绪论', '导论', '自序', '引言')):
+        m = re.search(r'\*\*《(.+?)》\*\*', body)
+        if m:
+            config['cover_title'] = m.group(1)
+        else:
+            config['cover_title'] = title
+    else:
+        config['cover_title'] = title
 
     chapters = parse_markdown_structure(body)
     print(f"Found {len(chapters)} chapters")
@@ -1351,17 +1591,7 @@ def assemble_full_html(book, mode='pdf'):
     css = generate_css(config)
 
     if mode == 'pdf':
-        paged_js_path = ASSETS_DIR / "paged.polyfill.js"
-        paged_js_url = paged_js_path.as_uri() if paged_js_path.exists() else "https://unpkg.com/pagedjs@0.4.3/dist/paged.polyfill.js"
-        script_block = f'''<script src="{paged_js_url}"></script>
-<script>
-document.addEventListener('pagedjs-ready', function() {{
-    document.body.classList.add('pagedjs-finished');
-}});
-setTimeout(function() {{
-    document.body.classList.add('pagedjs-finished');
-}}, 180000);
-</script>'''
+        script_block = ''
         print_css = ''
     else:
         script_block = ''
@@ -1419,12 +1649,7 @@ def generate_pdf(input_md, output_pdf, config):
         browser = p.chromium.launch()
         page = browser.new_page()
         page.set_content(full_html, wait_until="networkidle")
-
-        try:
-            page.wait_for_selector("body.pagedjs-finished", timeout=240000)
-        except Exception:
-            page.wait_for_selector(".pagedjs_page", timeout=240000)
-            page.wait_for_timeout(5000)
+        page.wait_for_timeout(5000)  # Allow fonts and images to settle
 
         page.pdf(
             path=output_pdf,
@@ -1435,6 +1660,7 @@ def generate_pdf(input_md, output_pdf, config):
         browser.close()
 
     add_bookmarks(output_pdf, book['chapters'], book['config'])
+    inject_toc_page_numbers(output_pdf, book['chapters'])
 
     pdf_size = os.path.getsize(output_pdf)
     print(f"Done! {output_pdf}")
