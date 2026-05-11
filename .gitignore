@@ -1,29 +1,14 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.env
-.venv
-venv/
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
 
-# IDE
+# 编辑器
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Outputs & test artifacts
-outputs/
-test_final.*
-*.bak
-
-# References are maintained locally, not versioned unless explicitly added
-# references/
+*~
 
 # 私有文件（绝对不能提交）
 *设计方案*.md
@@ -32,6 +17,7 @@ test_final.*
 *参考资料*.md
 *设计文档*.md
 *.private.*
+.env
 credentials.*
 
 # 临时文件

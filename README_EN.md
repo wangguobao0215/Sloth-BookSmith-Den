@@ -2,7 +2,7 @@
   <img src="assets/sloth-avatar-round.png" width="120" />
 </p>
 
-<h1 align="center">Sloth-BookSmith-Den</h1>
+<h1 align="center">匠书 · 出版排版引擎<br/><sub>Sloth-BookSmith-Den</sub></h1>
 
 <p align="center">
   <strong>Turn Markdown & Word manuscripts into publication-ready ebooks</strong><br/>
@@ -93,7 +93,7 @@ python scripts/booksmith.py --input manuscript.md --watermark "Internal Use" --f
 
 ## Version
 
-Current: **v2.0.0**
+Current: **2.0.0**
 
 See [CHANGELOG.md](CHANGELOG.md) for details.
 

@@ -124,7 +124,7 @@ python scripts/booksmith.py --input manuscript.md --watermark "内部资料" --f
 
 ## 版本
 
-当前版本：**v2.0.0**
+当前版本：**2.0.0**
 
 详见 [CHANGELOG.md](CHANGELOG.md)。
 
